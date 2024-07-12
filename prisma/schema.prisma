@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  email       String    @unique
+  password    String
+  firstName   String
+  lastName    String
+  pseudo      String    @unique
+  address     String
+  phone       String
+  roleId      Int
+  gdpr        DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  isActive    Boolean   
+  token       String?    @unique
+  // Relation
+  role        Role     @relation(fields: [roleId], references: [id])
+  cart        Cart[]
+}
+
+model Role {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  // Relation
+  user        User[]        
+}
+
+model Product {
+  id          Int       @id @default(autoincrement())
+  categoryId  Int
+  title       String
+  description String
+  image       String
+  price       Float
+  status      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  // Relation
+  category    Category  @relation(fields: [categoryId], references: [id])
+  cartHasProduct   CartHasProduct[]
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  // Relation
+  product     Product[]
+}
+
+// Panier d'un user uniquement suivant l'id
+model Cart {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  total       Float
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  status      String
+  // Relation
+  user        User      @relation(fields: [userId], references: [id])
+  cartHasProduct   CartHasProduct[]
+}
+
+// Table ou tous les produits sont ajoutés par les users
+model CartHasProduct {
+  id          Int       @id @default(autoincrement())
+  cartId      Int
+  productId   Int
+  quantity    Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  // Relation
+  cart        Cart      @relation(fields: [cartId], references: [id])
+  product     Product   @relation(fields: [productId], references: [id])
+}
