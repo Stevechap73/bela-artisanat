@@ -153,8 +153,12 @@ export class AuthService {
 
     const hash = await argon.hash(dto.password);
 
-    const token = (await argon.hash(`${new Date()}`)).replaceAll('/', ''); // important .replaceAll('/','') pour ne plus avoir de / car sinon ne recupere pas le bon token
-    // const token = uuidv4();
+    // important .replaceAll('/','-') pour ne plus avoir de / car sinon ne recupere pas le bon token (/ pense que c'est un nouveau route)
+    const token = (await argon.hash(`${new Date()}`))
+      .replaceAll('/', '')
+      .replaceAll('+', '');
+
+    // console.log('Generated token:', token);
 
     const user = await this.prisma.user.create({
       data: {
@@ -178,7 +182,7 @@ export class AuthService {
   }
 
   async activateAccount(token: string) {
-    console.log('Received token:', token); //
+    // console.log('Received token:', token);
     const user = await this.prisma.user.findUnique({
       where: {
         token: token,
@@ -190,7 +194,7 @@ export class AuthService {
       throw new ForbiddenException('Invalid token');
     }
 
-    console.log('User found:', user.email);
+    // console.log('User found:', user.email);
 
     await this.prisma.user.update({
       where: {
@@ -198,6 +202,7 @@ export class AuthService {
       },
       data: {
         isActive: true,
+        token: '',
       },
     });
 

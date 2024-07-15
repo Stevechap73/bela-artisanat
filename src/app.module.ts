@@ -8,6 +8,7 @@ import { CartModule } from './cart/cart.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { EmailModule } from './email/email.module';
+import { ImageModule } from './image/image.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { EmailModule } from './email/email.module';
     AuthModule,
     UserModule,
     EmailModule,
+    ImageModule,
   ],
 })
 export class AppModule {}

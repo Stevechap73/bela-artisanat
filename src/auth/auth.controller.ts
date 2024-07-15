@@ -19,6 +19,8 @@ export class AuthController {
 
   @Get('activate')
   async activateAccount(@Query('token') token: string) {
+    console.log('je suis dans activete', token);
+
     return this.authService.activateAccount(token);
   }
 }

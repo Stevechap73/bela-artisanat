@@ -33,6 +33,40 @@ export class ProductService {
     });
   }
 
+  async getOneProduct(id: number) {
+    return this.prisma.product.findUnique({
+      where: {
+        id: Number(id),
+      },
+      select: {
+        category: {
+          select: {
+            name: true,
+          },
+        },
+        id: true,
+        image: true,
+        title: true,
+        description: true,
+        price: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+  }
+
+  async searchProduct(query: string) {
+    return this.prisma.product.findMany({
+      where: {
+        OR: [
+          { title: query },
+          { description: query },
+          { category: { name: query } },
+        ],
+      },
+    });
+  }
+
   async addProduct(dto: ProductDto, user: User) {
     return this.prisma.product.create({
       data: {
