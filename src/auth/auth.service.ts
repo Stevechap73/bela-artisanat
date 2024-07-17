@@ -178,7 +178,7 @@ export class AuthService {
     // const activationToken = await argon.hash(`${new Date()} + ${user.email}`);
     await this.emailService.sendUserConfirmation(user, token);
 
-    return this.signToken(user.id);
+    return this.signToken(user.id, user.roleId);
   }
 
   async activateAccount(token: string) {
@@ -225,12 +225,16 @@ export class AuthService {
     if (!isValidPassword) {
       throw new ForbiddenException('Invalid crendentials');
     }
-    return this.signToken(user.id);
+    return { token: this.signToken(user.id, user.roleId), role: user.roleId };
   }
 
-  async signToken(userId: number): Promise<{ access_token: string }> {
+  async signToken(
+    userId: number,
+    roleId: number,
+  ): Promise<{ access_token: string }> {
     const payload = {
       sub: userId,
+      role: roleId,
     };
 
     const secret = this.config.get('JWT_SECRET');
