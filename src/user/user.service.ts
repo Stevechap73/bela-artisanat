@@ -13,6 +13,8 @@ export class UserService {
       },
       select: {
         id: true,
+        firstName: true,
+        lastName: true,
         pseudo: true,
         email: true,
         address: true,

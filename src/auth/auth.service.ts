@@ -178,7 +178,7 @@ export class AuthService {
     // const activationToken = await argon.hash(`${new Date()} + ${user.email}`);
     await this.emailService.sendUserConfirmation(user, token);
 
-    return this.signToken(user.id, user.roleId);
+    return this.signToken(user.id, user.roleId, user.isActive);
   }
 
   async activateAccount(token: string) {
@@ -190,7 +190,7 @@ export class AuthService {
     });
 
     if (!user) {
-      console.log('No user found for token:', token);
+      // console.log('No user found for token:', token);
       throw new ForbiddenException('Invalid token');
     }
 
@@ -202,7 +202,7 @@ export class AuthService {
       },
       data: {
         isActive: true,
-        token: '',
+        token: null,
       },
     });
 
@@ -221,20 +221,30 @@ export class AuthService {
       throw new ForbiddenException('Invalid crendentials');
     }
 
+    if (user.isActive === false) {
+      throw new ForbiddenException('User account is deactivated');
+    }
+
     const isValidPassword = await argon.verify(user.password, dto.password);
     if (!isValidPassword) {
       throw new ForbiddenException('Invalid crendentials');
     }
-    return { token: this.signToken(user.id, user.roleId), role: user.roleId };
+    return {
+      token: this.signToken(user.id, user.roleId, user.isActive),
+      role: user.roleId,
+      activateAccount: user.isActive,
+    };
   }
 
   async signToken(
     userId: number,
     roleId: number,
+    isActive: boolean,
   ): Promise<{ access_token: string }> {
     const payload = {
       sub: userId,
       role: roleId,
+      activeAccount: isActive,
     };
 
     const secret = this.config.get('JWT_SECRET');
