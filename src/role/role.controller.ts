@@ -10,7 +10,9 @@ import {
 } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { RoleDto } from './dto';
+import { JwtGuard } from 'src/auth/guards';
 
+@UseGuards(JwtGuard)
 @Controller('role')
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}

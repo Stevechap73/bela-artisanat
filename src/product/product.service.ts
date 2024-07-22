@@ -33,6 +33,31 @@ export class ProductService {
     });
   }
 
+  async getProductsByCategory(categoryId: number) {
+    return this.prisma.product.findMany({
+      where: {
+        categoryId: Number(categoryId),
+      },
+      // orderBy: {
+      //   createdAt: 'desc',
+      // },
+      select: {
+        category: {
+          select: {
+            name: true,
+          },
+        },
+        id: true,
+        image: true,
+        title: true,
+        description: true,
+        price: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+  }
+
   async getOneProduct(id: number) {
     return this.prisma.product.findUnique({
       where: {

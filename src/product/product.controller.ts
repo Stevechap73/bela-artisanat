@@ -14,14 +14,20 @@ import { Category, User } from '@prisma/client';
 import { GetUser } from 'src/auth/decorator';
 import { JwtGuard } from 'src/auth/guards';
 
+@UseGuards(JwtGuard)
 @Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
-  // @UseGuards(JwtGuard)
+  //  @UseGuards(JwtGuard)
   @Get('/all')
   getAllProducts() {
     return this.productService.getAllProducts();
+  }
+
+  @Get('category/:categoryId')
+  getProductsByCategory(@Param('categoryId') categoryId: number) {
+    return this.productService.getProductsByCategory(categoryId);
   }
 
   @Get('one/:id')

@@ -211,30 +211,52 @@ export class AuthService {
     };
   }
 
-  async signin(dto: SigninDto) {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        email: dto.email,
-      },
-    });
-    if (!user) {
-      throw new ForbiddenException('Invalid crendentials');
-    }
+  // async signin(dto: SigninDto) {
+  //   const user = await this.prisma.user.findUnique({
+  //     where: {
+  //       email: dto.email,
+  //     },
+  //   });
+  //   if (!user) {
+  //     throw new ForbiddenException('Invalid crendentials');
+  //   }
 
-    if (user.isActive === false) {
-      throw new ForbiddenException('User account is deactivated');
-    }
+  //   if (user.isActive === false) {
+  //     throw new ForbiddenException('User account is deactivated');
+  //   }
 
-    const isValidPassword = await argon.verify(user.password, dto.password);
-    if (!isValidPassword) {
-      throw new ForbiddenException('Invalid crendentials');
-    }
-    return {
-      token: this.signToken(user.id, user.roleId, user.isActive),
-      role: user.roleId,
-      activateAccount: user.isActive,
-    };
-  }
+  //   const isValidPassword = await argon.verify(user.password, dto.password);
+  //   if (!isValidPassword) {
+  //     throw new ForbiddenException('Invalid crendentials');
+  //   }
+  //   return {
+  //     token: this.signToken(user.id, user.roleId, user.isActive),
+  //     role: user.roleId,
+  //     activateAccount: user.isActive,
+  //   };
+  // }
+
+  // async signToken(
+  //   userId: number,
+  //   roleId: number,
+  //   isActive: boolean,
+  // ): Promise<{ access_token: string }> {
+  //   const payload = {
+  //     sub: userId,
+  //     role: roleId,
+  //     activeAccount: isActive,
+  //   };
+
+  //   const secret = this.config.get('JWT_SECRET');
+  //   const token = await this.jwt.signAsync(payload, {
+  //     expiresIn: '30d',
+  //     secret: secret,
+  //   });
+
+  //   return {
+  //     access_token: token,
+  //   };
+  // }
 
   async signToken(
     userId: number,
@@ -248,13 +270,58 @@ export class AuthService {
     };
 
     const secret = this.config.get('JWT_SECRET');
-    const token = await this.jwt.signAsync(payload, {
-      expiresIn: '30d',
-      secret: secret,
+    if (!secret) {
+      console.error('JWT_SECRET is not defined in the configuration.');
+      throw new Error(
+        'Internal server error. Please contact the administrator.',
+      );
+    }
+
+    try {
+      const token = await this.jwt.signAsync(payload, {
+        expiresIn: '30d',
+        secret: secret,
+      });
+      console.log('Generated JWT:', token);
+
+      return {
+        access_token: token,
+      };
+    } catch (error) {
+      console.error('Error generating token:', error);
+      throw new Error('Failed to generate token');
+    }
+  }
+
+  async signin(dto: SigninDto) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: dto.email,
+      },
     });
 
+    if (!user) {
+      throw new ForbiddenException('Invalid credentials');
+    }
+
+    if (!user.isActive) {
+      throw new ForbiddenException('User account is deactivated');
+    }
+
+    const isValidPassword = await argon.verify(user.password, dto.password);
+    if (!isValidPassword) {
+      throw new ForbiddenException('Invalid credentials');
+    }
+
+    const tokenDetails = await this.signToken(
+      user.id,
+      user.roleId,
+      user.isActive,
+    );
     return {
-      access_token: token,
+      token: tokenDetails.access_token, // Make sure to access the 'access_token' property
+      role: user.roleId,
+      activateAccount: user.isActive,
     };
   }
 }
